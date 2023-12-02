@@ -1,5 +1,4 @@
 #include <chrono>
-#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -8,21 +7,9 @@
 #include <vector>
 
 #include "approx_algs.hpp"
+#include "tsp_utils.hpp"
 
 #define FILE_PATH "data/berlin52/berlin52.tsp"
-
-/**
- * Calculates the Euclidean distance between two points in a 2D space.
- *
- * @param point1 The first point, represented as a tuple of two floats (x, y).
- * @param point2 The second point, represented as a tuple of two floats (x, y).
- * @return The Euclidean distance between the two points.
- */
-float euclidean_distance(std::tuple<float, float> point1, std::tuple<float, float> point2) {
-  float x_diff = std::get<0>(point1) - std::get<0>(point2);
-  float y_diff = std::get<1>(point1) - std::get<1>(point2);
-  return std::sqrt(x_diff * x_diff + y_diff * y_diff);
-}
 
 /**
  * Reads a TSP file input and returns a vector of tuples representing the coordinates.
@@ -66,38 +53,6 @@ std::vector<std::tuple<float, float>> read_tsp_file_input(std::string file_path)
     }
   }
   return points;
-}
-
-/**
- * Fills a matrix with distances between points.
- * 
- * This function calculates the Euclidean distance between each pair of points
- * and stores the result in the given matrix.
- * 
- * @param matrix The matrix to be filled with distances.
- * @param points The vector of points.
- */
-void fill_matrix_with_distances(std::vector<std::vector<float>>& matrix, const std::vector<std::tuple<float, float>>& points) {
-  for (size_t i = 0; i < points.size(); ++i) {
-    for (size_t j = 0; j < points.size(); ++j) {
-      matrix[i][j] = euclidean_distance(points[i], points[j]);
-    }
-  }
-}
-
-/**
- * Calculates the total weight of a given path in a graph.
- * 
- * @param graph The adjacency matrix representing the graph.
- * @param path The path represented as a vector of node indices.
- * @return The total weight of the path.
- */
-float calculate_path_weight(const std::vector<std::vector<float>>& graph, const std::vector<int>& path) {
-  float totalWeight = 0.0;
-  for (size_t i = 0; i < path.size() - 1; ++i) {
-    totalWeight += graph[path[i]][path[i + 1]];
-  }
-  return totalWeight;
 }
 
 /**
