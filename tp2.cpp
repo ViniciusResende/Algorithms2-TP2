@@ -1,191 +1,35 @@
-#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <limits>
 #include <sstream>
-#include <stack>
 #include <string>
 #include <tuple>
 #include <vector>
 
-class MinHeap {
-private:
-  std::vector<std::tuple<float, int, int>> data;
+#include "approx_algs.hpp"
 
-  struct comparator {
-    bool operator()(const std::tuple<float, int, int>& a, const std::tuple<float, int, int>& b) {
-      return std::get<0>(a) > std::get<0>(b);
-    }
-  };
+#define FILE_PATH "data/berlin52/berlin52.tsp"
 
-public:
-  void push(std::tuple<float, int, int> val) {
-    data.push_back(val);
-    std::push_heap(data.begin(), data.end(), comparator());
-  }
-
-  void pop() {
-    std::pop_heap(data.begin(), data.end(), comparator());
-    data.pop_back();
-  }
-
-  std::tuple<float, int, int> top() {
-    return data.front();
-  }
-
-  bool empty() {
-    return data.empty();
-  }
-
-  size_t size() {
-    return data.size();
-  }
-};
-
-std::vector<std::vector<float>> prim_mst(const std::vector<std::vector<float>>& graph) {
-  int numVertices = graph.size();
-  std::vector<std::vector<float>> mst(numVertices, std::vector<float>(numVertices, 0));
-  std::vector<bool> visited(numVertices, false);
-  MinHeap heap;
-
-  // (weight, vertex, parent)
-  heap.push(std::make_tuple(0.0, 0, -1));
-
-  while (!heap.empty()) {
-    auto [weight, vertex, parent] = heap.top();
-    heap.pop();
-    if (visited[vertex]) {
-      continue;
-    }
-    visited[vertex] = true;
-    if (parent != -1) {
-      mst[parent][vertex] = weight;
-      mst[vertex][parent] = weight;
-    }
-    for (int neighbor = 0; neighbor < numVertices; ++neighbor) {
-      if (!visited[neighbor] && graph[vertex][neighbor] != 0) {
-        heap.push(std::make_tuple(graph[vertex][neighbor], neighbor, vertex));
-      }
-    }
-  }
-  return mst;
-}
-
-std::vector<int> tree_preorder_walk(const std::vector<std::vector<float>>& tree) {
-  int numVertices = tree.size();
-  std::vector<bool> visited(numVertices, false);
-  std::stack<int> stack;
-  std::vector<int> walk;
-
-  stack.push(0);
-
-  while (!stack.empty()) {
-    int vertex = stack.top();
-    stack.pop();
-    if (visited[vertex]) continue;
-    visited[vertex] = true;
-    walk.push_back(vertex);
-    for (int neighbor = 0; neighbor < numVertices; ++neighbor) {
-      if (tree[vertex][neighbor] != 0) {
-        stack.push(neighbor);
-      }
-    }
-  }
-  return walk;
-}
-
-std::vector<int> approximate_tsp(const std::vector<std::vector<float>>& graph) {
-    // Calculate the MST
-    std::vector<std::vector<float>> mst = prim_mst(graph);
-
-    // Perform a preorder walk on the MST
-    std::vector<int> walk = tree_preorder_walk(mst);
-
-    // Append the first vertex to the end of the walk to form a cycle
-    walk.push_back(walk[0]);
-
-    return walk;
-}
-
-void minimum_perfect_matching(std::vector<std::vector<float>>& mst, const std::vector<std::vector<float>>& graph, const std::vector<int>& vertices) {
-  std::vector<bool> matched(vertices.size(), false);
-
-  for (size_t i = 0; i < vertices.size(); ++i) {
-    if (!matched[i]) {
-      int vertex = vertices[i];
-      float minWeight = std::numeric_limits<float>::max();
-      int minVertex = -1;
-
-      for (size_t j = 0; j < vertices.size(); ++j) {
-        if (i != j && !matched[j] && graph[vertex][vertices[j]] < minWeight) {
-          minWeight = graph[vertex][vertices[j]];
-          minVertex = vertices[j];
-        }
-      }
-
-      mst[vertex][minVertex] = minWeight;
-      mst[minVertex][vertex] = minWeight;
-      matched[i] = true;
-      matched[std::find(vertices.begin(), vertices.end(), minVertex) - vertices.begin()] = true;
-    }
-  }
-}
-
-std::vector<int> eulerian_tour(std::vector<std::vector<float>>& graph) {
-  std::vector<int> tour;
-  std::stack<int> stack;
-
-  int vertex = 0;
-  while (!stack.empty() || std::count_if(graph[vertex].begin(), graph[vertex].end(), [](float weight) { return weight > 0; }) > 0) {
-    if (std::count_if(graph[vertex].begin(), graph[vertex].end(), [](float weight) { return weight > 0; }) == 0) {
-      tour.push_back(vertex);
-      vertex = stack.top();
-      stack.pop();
-    } else {
-      stack.push(vertex);
-      int neighbor = std::distance(graph[vertex].begin(), std::find_if(graph[vertex].begin(), graph[vertex].end(), [](float weight) { return weight > 0; }));
-      graph[vertex][neighbor] = 0;
-      graph[neighbor][vertex] = 0;
-      vertex = neighbor;
-    }
-  }
-  tour.push_back(vertex);
-
-  return tour;
-}
-
-std::vector<int> christofides_tsp(std::vector<std::vector<float>>& graph) {
-  // Calculate the MST
-  std::vector<std::vector<float>> mst = prim_mst(graph);
-
-  // Find vertices with odd degree in the MST
-  std::vector<int> oddVertices;
-  for (size_t vertex = 0; vertex < mst.size(); ++vertex) {
-    if (std::count_if(mst[vertex].begin(), mst[vertex].end(), [](float weight) { return weight > 0; }) % 2 != 0) {
-      oddVertices.push_back(vertex);
-    }
-  }
-
-  // Add minimum perfect matching to the MST
-  minimum_perfect_matching(mst, graph, oddVertices);
-
-  // Calculate an Eulerian tour of the MST
-  std::vector<int> tour = eulerian_tour(mst);
-
-  // Append the first vertex to the end of the tour to form a cycle
-  tour.push_back(tour[0]);
-
-  return tour;
-}
-
+/**
+ * Calculates the Euclidean distance between two points in a 2D space.
+ *
+ * @param point1 The first point, represented as a tuple of two floats (x, y).
+ * @param point2 The second point, represented as a tuple of two floats (x, y).
+ * @return The Euclidean distance between the two points.
+ */
 float euclidean_distance(std::tuple<float, float> point1, std::tuple<float, float> point2) {
   float x_diff = std::get<0>(point1) - std::get<0>(point2);
   float y_diff = std::get<1>(point1) - std::get<1>(point2);
   return std::sqrt(x_diff * x_diff + y_diff * y_diff);
 }
 
+/**
+ * Reads a TSP file input and returns a vector of tuples representing the coordinates.
+ *
+ * @param file_path The path to the TSP file.
+ * @return A vector of tuples representing the coordinates in the TSP file.
+ */
 std::vector<std::tuple<float, float>> read_tsp_file_input(std::string file_path) {
   std::ifstream file(file_path);
   std::string line;
@@ -224,6 +68,15 @@ std::vector<std::tuple<float, float>> read_tsp_file_input(std::string file_path)
   return points;
 }
 
+/**
+ * Fills a matrix with distances between points.
+ * 
+ * This function calculates the Euclidean distance between each pair of points
+ * and stores the result in the given matrix.
+ * 
+ * @param matrix The matrix to be filled with distances.
+ * @param points The vector of points.
+ */
 void fill_matrix_with_distances(std::vector<std::vector<float>>& matrix, const std::vector<std::tuple<float, float>>& points) {
   for (size_t i = 0; i < points.size(); ++i) {
     for (size_t j = 0; j < points.size(); ++j) {
@@ -232,6 +85,13 @@ void fill_matrix_with_distances(std::vector<std::vector<float>>& matrix, const s
   }
 }
 
+/**
+ * Calculates the total weight of a given path in a graph.
+ * 
+ * @param graph The adjacency matrix representing the graph.
+ * @param path The path represented as a vector of node indices.
+ * @return The total weight of the path.
+ */
 float calculate_path_weight(const std::vector<std::vector<float>>& graph, const std::vector<int>& path) {
   float totalWeight = 0.0;
   for (size_t i = 0; i < path.size() - 1; ++i) {
@@ -240,10 +100,19 @@ float calculate_path_weight(const std::vector<std::vector<float>>& graph, const 
   return totalWeight;
 }
 
+/**
+ * @brief The main function of the program.
+ * 
+ * This function reads input from a TSP file, creates a distance matrix,
+ * and applies two different algorithms to approximate the Traveling Salesman Problem (TSP).
+ * It then prints the paths and weights of the approximations, as well as the execution time.
+ * 
+ * @return 0 indicating successful execution of the program.
+ */
 int main() {
   auto start = std::chrono::high_resolution_clock::now();
 
-  std::vector<std::tuple<float, float>> points = read_tsp_file_input("data/brd14051/brd14051.tsp");
+  std::vector<std::tuple<float, float>> points = read_tsp_file_input(FILE_PATH);
   // Print the points
   // for (const auto& point : points) {
   //   std::cout << "Point: (" << std::get<0>(point) << ", " << std::get<1>(point) << ")" << std::endl;
