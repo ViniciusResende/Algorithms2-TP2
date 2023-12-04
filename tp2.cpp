@@ -8,8 +8,9 @@
 
 #include "approx_algs.hpp"
 #include "tsp_utils.hpp"
+#include "bnb_alg.hpp"
 
-#define FILE_PATH "data/berlin52/berlin52.tsp"
+#define FILE_PATH "data/ulyssess22/ulyssess22.tsp"
 
 /**
  * Reads a TSP file input and returns a vector of tuples representing the coordinates.
@@ -55,6 +56,16 @@ std::vector<std::tuple<float, float>> read_tsp_file_input(std::string file_path)
   return points;
 }
 
+void print_minutes_and_second(long long microseconds) {
+  int minutes = microseconds / 60000000;
+  int seconds = (microseconds % 60000000) / 1000000;
+  if(seconds > 0) {
+    std::cout << "Execution time: " << minutes << " minutes and " << seconds << " seconds." << std::endl;
+  } else {
+    std::cout << "Execution time: " << microseconds << " microseconds." << std::endl;
+  }
+}
+
 /**
  * @brief The main function of the program.
  * 
@@ -74,8 +85,14 @@ int main() {
   // }
 
   // Create a matrix
-  std::vector<std::vector<float>> matrix(points.size(), std::vector<float>(points.size()));
-  fill_matrix_with_distances(matrix, points);
+  // std::vector<std::vector<float>> matrix(points.size(), std::vector<float>(points.size()));
+  // fill_matrix_with_distances(matrix, points);
+
+  std::vector<std::vector<float>> matrix = std::vector<std::vector<float>>({
+      {0, 10, 15, 20},
+      {10, 0, 35, 25},
+      {15, 35, 0, 30},
+      {20, 25, 30, 0}});
 
   // Approximate TSP
   std::vector<int> walk_approx = approximate_tsp(matrix);
@@ -101,9 +118,22 @@ int main() {
   std::cout << "]" << std::endl;
   std::cout << "Weight: " << calculate_path_weight(matrix, walk_christofides) << std::endl;
 
+  // BNB TSP
+  std::vector<int> walk_bnb = branchAndBound(matrix);
+  // std::vector<int> walk_bnb = {0, 13, 12, 11, 6, 5, 14, 4, 10, 8, 9, 18, 19, 20, 15, 2, 1, 16, 21, 3, 17, 7, 0};
+
+  // Print the walk
+  std::cout << "Branch and Bound TSP Algorithm: " << std::endl;
+  std::cout << "Path: [";
+  for (const auto& vertex : walk_bnb) {
+    std::cout << vertex << " ";
+  }
+  std::cout << "]" << std::endl;
+  std::cout << "Weight: " << calculate_path_weight(matrix, walk_bnb) << std::endl;
+
   auto stop = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
-  std::cout << "Time taken by function: " << duration.count() << " microseconds" << std::endl;
+  print_minutes_and_second(duration.count());
   return 0;
 }
