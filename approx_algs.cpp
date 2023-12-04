@@ -203,9 +203,25 @@ std::vector<int> eulerian_tour(std::vector<std::vector<float>>& graph) {
       vertex = neighbor;
     }
   }
-  tour.push_back(vertex);
+  tour.push_back(tour[0]);
 
   return tour;
+}
+
+void removeDuplicate(std::vector<int>& vec) {
+  if (vec.size() < 3) {
+    // Nothing to remove if the vector has less than 3 elements
+    return;
+  }
+
+  // Iterate from the second element to the second-to-last element
+  for (auto it = vec.begin() + 1; it != vec.end() - 1; ++it) {
+    auto dupIt = std::find(it + 1, vec.end() - 1, *it);
+    if (dupIt != vec.end() - 1) {
+      // If a duplicate is found, remove the second occurrence
+      vec.erase(dupIt);
+    }
+  }
 }
 
 std::vector<int> christofides_tsp(std::vector<std::vector<float>>& graph) {
@@ -225,9 +241,7 @@ std::vector<int> christofides_tsp(std::vector<std::vector<float>>& graph) {
 
   // Calculate an Eulerian tour of the MST
   std::vector<int> tour = eulerian_tour(mst);
-
-  // Append the first vertex to the end of the tour to form a cycle
-  tour.push_back(tour[0]);
+  removeDuplicate(tour);
 
   return tour;
 }
