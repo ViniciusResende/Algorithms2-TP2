@@ -10,8 +10,6 @@
 #include "tsp_utils.hpp"
 #include "bnb_alg.hpp"
 
-#define FILE_PATH "data/ulyssess22/ulyssess22.tsp"
-
 /**
  * Reads a TSP file input and returns a vector of tuples representing the coordinates.
  *
@@ -56,6 +54,35 @@ std::vector<std::tuple<float, float>> read_tsp_file_input(std::string file_path)
   return points;
 }
 
+std::vector<int> read_tour_file(const std::string& filePath) {
+  std::vector<int> tour;
+  std::ifstream file(filePath);
+  if (!file.is_open()) {
+    return tour; // Return empty vector if file could not be opened
+  }
+
+  std::string line;
+  while (std::getline(file, line)) {
+    if (line.substr(0, 9) == "DIMENSION") {
+      std::istringstream iss(line.substr(10));
+      int dimension;
+      iss >> dimension;
+    } else if (line.substr(0, 12) == "TOUR_SECTION") {
+      while (std::getline(file, line) && line != "EOF") {
+        std::istringstream iss(line);
+        int city;
+        iss >> city;
+        tour.push_back(city - 1);
+      }
+      break;
+    }
+  }
+
+  file.close();
+  tour[tour.size() - 1] = tour[0]; // Add the first city to the end of the tour
+  return tour;
+}
+
 void print_minutes_and_second(long seconds) {
   seconds %= 3600;
   int minutes = seconds / 60;
@@ -73,18 +100,23 @@ void print_minutes_and_second(long seconds) {
  * 
  * @return 0 indicating successful execution of the program.
  */
-int main() {
+int main(int argc, char** argv) {
+  std::cout << "Traveling Salesman Problem - DATABASE: " << argv[1] << std::endl;
+  std::string FILE_PATH = "data/REPLACEABLE/REPLACEABLE.tsp";
+  std::string TOUR_FILE_PATH = "data/REPLACEABLE/REPLACEABLE.opt.tour";
+  if (argc > 1) {
+    for (int i = 0; i < 2; i++) {
+      size_t pos = FILE_PATH.find("REPLACEABLE");
+      if (pos != std::string::npos) FILE_PATH.replace(pos, std::string("REPLACEABLE").length(), argv[1]);
+      pos = TOUR_FILE_PATH.find("REPLACEABLE");
+      if (pos != std::string::npos) TOUR_FILE_PATH.replace(pos, std::string("REPLACEABLE").length(), argv[1]);
+    }
+  }
   std::vector<std::tuple<float, float>> points = read_tsp_file_input(FILE_PATH);
 
   // Create a matrix
-  // std::vector<std::vector<float>> matrix(points.size(), std::vector<float>(points.size()));
-  // fill_matrix_with_distances(matrix, points);
-
-  std::vector<std::vector<float>> matrix = std::vector<std::vector<float>>({
-      {0, 10, 15, 20},
-      {10, 0, 35, 25},
-      {15, 35, 0, 30},
-      {20, 25, 30, 0}});
+  std::vector<std::vector<float>> matrix(points.size(), std::vector<float>(points.size()));
+  fill_matrix_with_distances(matrix, points);
 
   // Approximate TSP
   auto start_approx = std::chrono::high_resolution_clock::now();
@@ -124,18 +156,34 @@ int main() {
   auto start_bnb = std::chrono::high_resolution_clock::now();
   std::vector<int> walk_bnb = branchAndBound(matrix);
 
-  // Print the walk
   std::cout << "Branch and Bound TSP Algorithm: " << std::endl;
-  std::cout << "Path: [";
-  for (const auto& vertex : walk_bnb) {
-    std::cout << vertex << " ";
+  if(walk_bnb.size()) {
+    // Print the walk
+    std::cout << "Path: [";
+    for (const auto& vertex : walk_bnb) {
+      std::cout << vertex << " ";
+    }
+    std::cout << "]" << std::endl;
+    std::cout << "Weight: " << calculate_path_weight(matrix, walk_bnb) << std::endl;
+  } else {
+    std::cout << "Could not find a solution in 30 minutes." << std::endl;
   }
-  std::cout << "]" << std::endl;
-  std::cout << "Weight: " << calculate_path_weight(matrix, walk_bnb) << std::endl;
 
   auto stop_bnb = std::chrono::high_resolution_clock::now();
   auto duration_bnb = std::chrono::duration_cast<std::chrono::microseconds>(stop_bnb - start_bnb);
   print_minutes_and_second(duration_chris.count());
+
+  // Compare with optimal solution
+  std::vector<int> optimal_tour = read_tour_file(TOUR_FILE_PATH);
+  if(optimal_tour.size()) {
+    std::cout << "Given Optimal solution: " << std::endl;
+    std::cout << "Path: [";
+    for (const auto& vertex : optimal_tour) {
+      std::cout << vertex << " ";
+    }
+    std::cout << "]" << std::endl;
+    std::cout << "Weight: " << calculate_path_weight(matrix, optimal_tour) << std::endl;
+  }
   
   return 0;
 }

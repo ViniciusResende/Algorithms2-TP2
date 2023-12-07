@@ -1,3 +1,6 @@
-data/*
+ALL_tsp/*
 *.o
 tp2
+tp2_datasets.txt
+*.py
+*.ipynb

@@ -1,7 +1,8 @@
 #include <algorithm>
+#include <chrono>
 #include <queue>
 #include <limits>
-#include <iostream> // Add this line to include the <cstdio> header for printf
+#include <iostream>
 
 #include "bnb_alg.hpp"
 
@@ -141,7 +142,17 @@ std::vector<int> branchAndBound(std::vector<std::vector<float>> graph) {
 
   std::vector<std::vector<float>>* minPath = computeMinPath(graph);
 
+  // Start the timer
+  auto startTime = std::chrono::steady_clock::now();
+
   while(!queue.empty()) {
+    // Check if the execution time exceeds 30 minutes
+    auto currentTime = std::chrono::steady_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::minutes>(currentTime - startTime).count();
+    if (elapsedTime >= 30) {
+      return {};
+    }
+
     Node node = queue.top();
     queue.pop();
 
