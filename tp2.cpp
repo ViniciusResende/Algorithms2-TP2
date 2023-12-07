@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -24,9 +26,10 @@ std::vector<std::tuple<float, float>> read_tsp_file_input(std::string file_path)
   // Read the dimension
   while (std::getline(file, line)) {
     if (line.find("DIMENSION") != std::string::npos) {
+      // Remove non-numeric characters from the line
+      line.erase(std::remove_if(line.begin(), line.end(), [](unsigned char c) { return !std::isdigit(c); }), line.end());
       std::istringstream iss(line);
-      std::string id;
-      iss >> id >> dimension;
+      iss >> dimension;
       break;
     }
   }
