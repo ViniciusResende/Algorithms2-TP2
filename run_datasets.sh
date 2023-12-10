@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Specify the compiled C++ executable
-cpp_executable="./tp2_stable"
+cpp_executable="./tp2"
 
 # Specify the output file
 output_file="run_output.txt"
