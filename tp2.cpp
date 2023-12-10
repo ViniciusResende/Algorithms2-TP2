@@ -121,12 +121,12 @@ int main(int argc, char** argv) {
   std::vector<std::vector<float>> matrix(points.size(), std::vector<float>(points.size()));
   fill_matrix_with_distances(matrix, points);
 
-  // Approximate TSP
+  // Twice Around the Tree TSP
   auto start_approx = std::chrono::high_resolution_clock::now();
-  std::vector<int> walk_approx = approximate_tsp(matrix);
+  std::vector<int> walk_approx = twice_around_the_tree(matrix);
 
   // Print the walk
-  std::cout << "Approximate TSP Algorithm: " << std::endl;
+  std::cout << "Twice Around the Tree TSP Algorithm: " << std::endl;
   std::cout << "Path: [";
   for (const auto& vertex : walk_approx) {
     std::cout << vertex << " ";

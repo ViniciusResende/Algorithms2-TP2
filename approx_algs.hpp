@@ -11,4 +11,4 @@ std::vector<int> christofides_tsp(std::vector<std::vector<float>>& graph);
  * @param graph The input graph represented as a 2D vector of floats.
  * @return std::vector<int> An approximate solution to the TSP represented as a vector of integers.
  */
-std::vector<int> approximate_tsp(const std::vector<std::vector<float>>& graph);
+std::vector<int> twice_around_the_tree(const std::vector<std::vector<float>>& graph);

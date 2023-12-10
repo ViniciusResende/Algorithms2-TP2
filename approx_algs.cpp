@@ -141,7 +141,7 @@ std::vector<int> tree_preorder_walk(const std::vector<std::vector<float>>& tree)
  * This class provides a dynamic array-like container that can store a sequence of integers.
  * It supports various operations such as adding, removing, and accessing elements.
  */
-std::vector<int> approximate_tsp(const std::vector<std::vector<float>>& graph) {
+std::vector<int> twice_around_the_tree(const std::vector<std::vector<float>>& graph) {
   // Calculate the MST
   std::vector<std::vector<float>> mst = prim_mst(graph);
 
@@ -218,7 +218,6 @@ void removeDuplicate(std::vector<int>& vec) {
   for (auto it = vec.begin() + 1; it != vec.end() - 1; ++it) {
     auto dupIt = std::find(it + 1, vec.end() - 1, *it);
     if (dupIt != vec.end() - 1) {
-      // If a duplicate is found, remove the second occurrence
       vec.erase(dupIt);
     }
   }
