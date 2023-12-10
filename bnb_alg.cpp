@@ -140,8 +140,6 @@ std::vector<int> branchAndBound(std::vector<std::vector<float>> graph) {
   root.bound = calculateBound(graph, root, root);
   queue.push(root);
 
-  std::vector<std::vector<float>>* minPath = computeMinPath(graph);
-
   // Start the timer
   auto startTime = std::chrono::steady_clock::now();
 

@@ -16,3 +16,5 @@ Alternativamente, foi criado um arquivo do tipo `bash` nomeado `run_datasets.sh`
 chmod +x run_datasets.sh
 ./run_datasets.sh
 ```
+
+Ademais, estão disponíveis os documentos `relatorio.pdf` que é um documento contendo toda a argumentação, experimentação e análise de resultados do trabalho. E também, como pedido, o arquivo `tests_output.xlsx` que é a tabela completa com todos os resultados.
